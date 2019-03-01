@@ -27,9 +27,11 @@ $desc = Get-JiraIssue -Key $ticket
 #split large description string by return lines
 $desc = $desc.Description -split "`n"
 #match username text lines
-$users = ($desc | Select-String -Pattern "\[\d*][a-zA-Z0-9]*,\s**[a-zA-Z]")
+$users = ($desc | Select-String -Pattern "\[\d*][a-zA-Z0-9]*,\s*[a-zA-Z]*")
 
 $newusers =  @( [PSCustomObject]@{'first' = ""; 'last' = ""; 'email' = "";} )
+
+$security_group = ($desc | Select-String -Pattern 'AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$' ).matches[0].value
 
 $usernames = @()
 $email = @()
@@ -67,7 +69,14 @@ foreach ($user in $users){
     }#endfor
  }#endif
 
+ $aws = ($desc | Select-String -Pattern '^AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$') 
+
  $newusers | Sort-Object email | Get-Unique -AsString
 
+ $security_group
+
+ #add new group use try catch to determine if it can be created or not
+# New-ADGroup -Name "RODC Admins" -SamAccountName RODCAdmins -GroupCategory Security -GroupScope Global -DisplayName "RODC Administrators" -Path "CN=Users,DC=Fabrikam,DC=Com" -Description "Members of this group are RODC Administrators"
+# New-ADUser
 }#end function
     
